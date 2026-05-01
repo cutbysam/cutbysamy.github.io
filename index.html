@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="CUTBYSAMY — Turning raw footage into visual experiences people can't ignore. Video editor specialising in cinematic, YouTube and creative content."/>
+<title>CUTBYSAMY — Video Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ── RESET ───────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16px;}
+
+/* ── TOKENS ──────────────────────────────────────────── */
+:root{
+  --neon:#00FF41;
+  --neon-dim:#00c431;
+  --black:#060606;
+  --dark:#0d0d0d;
+  --card:#111111;
+  --text:#e2e2e2;
+  --muted:#666666;
+  --border:#1c1c1c;
+  --font-display:'Bebas Neue',sans-serif;
+  --font-body:'Space Mono',monospace;
+}
+
+/* ── BASE ────────────────────────────────────────────── */
+body{
+  background:var(--black);
+  color:var(--text);
+  font-family:var(--font-body);
+  overflow-x:hidden;
+  cursor:none;
+}
+a{color:inherit;text-decoration:none;}
+img{display:block;max-width:100%;}
+
+/* ── CUSTOM CURSOR ───────────────────────────────────── */
+#cursor{
+  position:fixed;width:10px;height:10px;
+  background:var(--neon);border-radius:50%;
+  pointer-events:none;z-index:9999;
+  transform:translate(-50%,-50%);
+  transition:transform .1s,width .2s,height .2s,opacity .2s;
+}
+#cursor-ring{
+  position:fixed;width:36px;height:36px;
+  border:1px solid rgba(0,255,65,.4);border-radius:50%;
+  pointer-events:none;z-index:9998;
+  transform:translate(-50%,-50%);
+  transition:transform .12s ease-out,width .25s,height .25s,opacity .3s;
+}
+body:hover #cursor{opacity:1;}
+
+/* ── GRAIN OVERLAY ───────────────────────────────────── */
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:1;opacity:.35;
+}
+
+/* ── NAV ─────────────────────────────────────────────── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.25rem 4rem;
+  background:rgba(6,6,6,.88);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid #0e0e0e;
+  transition:padding .3s;
+}
+nav.scrolled{padding:.9rem 4rem;}
+.nav-logo{
+  font-family:var(--font-display);
+  font-size:1.7rem;letter-spacing:.1em;color:var(--neon);
+}
+.nav-links{display:flex;gap:2.5rem;list-style:none;}
+.nav-links a{
+  font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);transition:color .2s;
+}
+.nav-links a:hover{color:var(--neon);}
+.nav-cta{
+  background:transparent;border:1px solid var(--neon);
+  color:var(--neon);padding:.5rem 1.4rem;
+  font-family:var(--font-body);font-size:.62rem;
+  letter-spacing:.16em;text-transform:uppercase;cursor:none;
+  transition:background .2s,color .2s;
+}
+.nav-cta:hover{background:var(--neon);color:var(--black);}
+.nav-burger{display:none;flex-direction:column;gap:5px;cursor:none;background:none;border:none;padding:4px;}
+.nav-burger span{display:block;width:22px;height:1px;background:var(--text);transition:all .3s;}
+
+/* ── HERO ─────────────────────────────────────────────── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;padding:0 4rem;position:relative;overflow:hidden;
+}
+.hero-bg-word{
+  position:absolute;right:-1rem;top:50%;
+  transform:translateY(-52%);
+  font-family:var(--font-display);font-size:28vw;
+  color:#080808;letter-spacing:.04em;
+  pointer-events:none;user-select:none;line-height:.9;
+  z-index:0;
+}
+.hero-content{position:relative;z-index:2;}
+.hero-eyebrow{
+  font-size:.62rem;letter-spacing:.32em;color:var(--neon);
+  text-transform:uppercase;margin-bottom:1.6rem;
+  display:flex;align-items:center;gap:.9rem;
+  opacity:0;animation:fadeUp .8s .2s forwards;
+}
+.hero-eyebrow::before{content:'';display:inline-block;width:28px;height:1px;background:var(--neon);}
+.hero-title{
+  font-family:var(--font-display);
+  font-size:clamp(5.5rem,16vw,13rem);
+  line-height:.88;letter-spacing:.02em;color:#fff;
+  opacity:0;animation:fadeUp .9s .35s forwards;
+}
+.hero-title .accent{color:var(--neon);}
+.hero-tagline{
+  font-size:.72rem;color:var(--muted);
+  max-width:460px;line-height:2;margin:1.8rem 0 2.4rem;
+  letter-spacing:.04em;
+  opacity:0;animation:fadeUp .9s .5s forwards;
+}
+.cursor-blink{
+  display:inline-block;width:2px;height:.85em;
+  background:var(--neon);vertical-align:text-bottom;margin-left:2px;
+  animation:blink 1s step-end infinite;
+}
+.hero-actions{
+  display:flex;gap:1rem;flex-wrap:wrap;
+  opacity:0;animation:fadeUp .9s .65s forwards;
+}
+.btn-primary{
+  background:var(--neon);color:var(--black);border:none;
+  padding:.9rem 2.2rem;font-family:var(--font-body);
+  font-size:.68rem;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;cursor:none;transition:all .2s;display:inline-block;
+}
+.btn-primary:hover{background:var(--neon-dim);transform:translateY(-2px);}
+.btn-ghost{
+  background:transparent;color:var(--text);border:1px solid #222;
+  padding:.9rem 2.2rem;font-family:var(--font-body);
+  font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
+  cursor:none;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;
+}
+.btn-ghost:hover{border-color:var(--neon);color:var(--neon);}
+.hero-stats{
+  position:absolute;bottom:2.8rem;right:4rem;
+  display:flex;gap:3rem;
+  opacity:0;animation:fadeUp .9s .8s forwards;
+}
+.stat-num{
+  font-family:var(--font-display);font-size:2.4rem;
+  color:var(--neon);line-height:1;
+}
+.stat-label{
+  font-size:.52rem;color:var(--muted);
+  letter-spacing:.16em;text-transform:uppercase;margin-top:3px;
+}
+.hero-scroll-hint{
+  position:absolute;bottom:2.8rem;left:4rem;
+  font-size:.58rem;color:var(--muted);letter-spacing:.22em;
+  text-transform:uppercase;display:flex;align-items:center;gap:.9rem;
+  opacity:0;animation:fadeUp .9s .9s forwards;
+}
+.hero-scroll-hint::after{content:'';display:inline-block;width:38px;height:1px;background:var(--muted);}
+
+/* ── SECTION BASE ─────────────────────────────────────── */
+section{padding:7rem 4rem;}
+.section-kicker{
+  font-size:.58rem;color:var(--neon);
+  letter-spacing:.3em;text-transform:uppercase;margin-bottom:.7rem;
+}
+.section-heading{
+  font-family:var(--font-display);
+  font-size:clamp(2.8rem,5vw,4.5rem);
+  letter-spacing:.04em;color:#fff;line-height:1;
+}
+.section-header{
+  display:flex;align-items:flex-end;
+  justify-content:space-between;margin-bottom:3.5rem;flex-wrap:wrap;gap:1rem;
+}
+
+/* ── REEL ─────────────────────────────────────────────── */
+#reel{border-top:1px solid var(--border);}
+.reel-frame{
+  position:relative;width:100%;aspect-ratio:16/9;
+  background:#080808;overflow:hidden;
+  border:1px solid var(--border);
+}
+.reel-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
+.reel-placeholder{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1.5rem;
+  background:#080808;cursor:none;
+}
+.reel-placeholder-label{
+  font-family:var(--font-display);font-size:clamp(1.5rem,4vw,3rem);
+  color:#161616;letter-spacing:.1em;text-align:center;
+}
+.reel-placeholder-sub{
+  font-size:.58rem;color:#202020;letter-spacing:.2em;text-transform:uppercase;
+}
+.play-ring{
+  width:88px;height:88px;border:1.5px solid var(--neon);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .3s,background .3s;position:relative;
+}
+.play-ring:hover{transform:scale(1.08);background:rgba(0,255,65,.07);}
+.play-triangle{
+  width:0;height:0;
+  border-top:15px solid transparent;
+  border-bottom:15px solid transparent;
+  border-left:24px solid var(--neon);
+  margin-left:6px;
+}
+.reel-corners span{
+  position:absolute;width:18px;height:18px;
+  border-color:var(--neon);border-style:solid;
+}
+.reel-corners .tl{top:14px;left:14px;border-width:2px 0 0 2px;}
+.reel-corners .tr{top:14px;right:14px;border-width:2px 2px 0 0;}
+.reel-corners .bl{bottom:14px;left:14px;border-width:0 0 2px 2px;}
+.reel-corners .br{bottom:14px;right:14px;border-width:0 2px 2px 0;}
+.reel-scanlines{
+  position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,65,.012) 2px,rgba(0,255,65,.012) 4px);
+}
+/* how to embed note */
+.reel-note{
+  margin-top:1rem;font-size:.62rem;color:var(--muted);
+  letter-spacing:.06em;line-height:1.8;
+  border-left:2px solid var(--neon);padding-left:1rem;
+}
+.reel-note code{
+  background:#111;color:var(--neon);padding:2px 6px;font-size:.6rem;
+}
+
+/* ── GALLERY ──────────────────────────────────────────── */
+#work{border-top:1px solid var(--border);}
+.gallery-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+}
+.gallery-item{
+  position:relative;aspect-ratio:16/9;overflow:hidden;
+  background:#0a0a0a;cursor:none;
+}
+.gallery-item-bg{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--card);transition:transform .6s ease;
+}
+.gallery-item:hover .gallery-item-bg{transform:scale(1.04);}
+.gallery-item-bg img{
+  width:100%;height:100%;object-fit:cover;
+  opacity:.55;transition:opacity .4s;
+}
+.gallery-item:hover .gallery-item-bg img{opacity:.25;}
+.gallery-placeholder-num{
+  font-family:var(--font-display);font-size:3rem;
+  color:#161616;letter-spacing:.08em;position:absolute;
+}
+.gallery-item-info{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  justify-content:flex-end;padding:1.3rem;
+  background:linear-gradient(transparent 40%,rgba(0,0,0,.88));
+  opacity:0;transition:opacity .3s;
+}
+.gallery-item:hover .gallery-item-info{opacity:1;}
+.gallery-cat{
+  font-size:.54rem;color:var(--neon);
+  letter-spacing:.2em;text-transform:uppercase;margin-bottom:.4rem;
+}
+.gallery-title{
+  font-family:var(--font-display);font-size:1.35rem;
+  letter-spacing:.05em;color:#fff;
+}
+.gallery-tag{
+  display:inline-block;border:1px solid #333;
+  font-size:.52rem;color:var(--muted);letter-spacing:.12em;
+  padding:3px 8px;text-transform:uppercase;margin-top:.5rem;
+}
+/* Featured item spans 2 columns */
+.gallery-item.featured{grid-column:span 2;}
+
+/* ── ABOUT ────────────────────────────────────────────── */
+#about{border-top:1px solid var(--border);}
+.about-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:6rem;align-items:center;}
+.about-frame{
+  aspect-ratio:3/4;background:var(--dark);border:1px solid var(--border);
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.about-frame-bg{
+  font-family:var(--font-display);font-size:5.5rem;
+  color:#0d0d0d;line-height:1;text-align:center;letter-spacing:.04em;
+}
+.about-available{
+  position:absolute;bottom:-1px;right:-1px;
+  background:var(--neon);color:var(--black);
+  padding:.9rem 1.1rem;font-size:.58rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;line-height:1.5;
+}
+.about-frame-hint{
+  position:absolute;top:1rem;left:1rem;
+  font-size:.52rem;color:#1a1a1a;letter-spacing:.18em;text-transform:uppercase;
+}
+.about-body{
+  font-size:.72rem;line-height:2.1;color:var(--muted);
+  margin-bottom:2rem;
+}
+.about-body strong{color:var(--text);font-weight:700;}
+.skills-wrap{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:2.5rem;}
+.skill{
+  border:1px solid #1e1e1e;font-size:.58rem;
+  color:var(--muted);letter-spacing:.12em;
+  padding:5px 13px;text-transform:uppercase;transition:all .2s;
+}
+.skill:hover{border-color:var(--neon);color:var(--neon);}
+.about-ig{
+  display:inline-flex;align-items:center;gap:.6rem;
+  font-size:.64rem;color:var(--neon);letter-spacing:.1em;
+  text-transform:uppercase;border-bottom:1px solid var(--neon);
+  padding-bottom:2px;transition:opacity .2s;
+}
+.about-ig:hover{opacity:.7;}
+
+/* ── SERVICES ─────────────────────────────────────────── */
+#services{border-top:1px solid var(--border);background:var(--dark);}
+.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
+.service-card{
+  background:var(--dark);padding:2.5rem 2rem;
+  transition:background .3s;
+}
+.service-card:hover{background:#111;}
+.service-icon{
+  font-family:var(--font-display);font-size:2.5rem;
+  color:var(--neon);letter-spacing:.05em;margin-bottom:1.2rem;line-height:1;
+}
+.service-title{
+  font-family:var(--font-display);font-size:1.4rem;
+  letter-spacing:.05em;color:#fff;margin-bottom:.8rem;
+}
+.service-desc{
+  font-size:.65rem;color:var(--muted);line-height:1.9;letter-spacing:.03em;
+}
+.service-list{
+  margin-top:1rem;list-style:none;display:flex;flex-direction:column;gap:.4rem;
+}
+.service-list li{
+  font-size:.6rem;color:#444;letter-spacing:.08em;
+  padding-left:.8rem;position:relative;
+}
+.service-list li::before{
+  content:'—';position:absolute;left:0;color:var(--neon);font-size:.55rem;
+}
+
+/* ── CONTACT ──────────────────────────────────────────── */
+#contact{border-top:1px solid var(--border);}
+.contact-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:6rem;align-items:start;}
+.contact-left{}
+.contact-intro{
+  font-size:.7rem;color:var(--muted);line-height:2;
+  margin-bottom:2.5rem;letter-spacing:.03em;
+}
+.contact-detail{
+  display:flex;flex-direction:column;gap:1.2rem;margin-bottom:2.5rem;
+}
+.contact-item{display:flex;flex-direction:column;gap:.3rem;}
+.contact-item-label{
+  font-size:.54rem;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;
+}
+.contact-item-value{
+  font-size:.7rem;color:var(--text);letter-spacing:.05em;
+}
+.contact-item-value a{color:var(--neon);transition:opacity .2s;}
+.contact-item-value a:hover{opacity:.7;}
+
+/* Form */
+.contact-form{display:flex;flex-direction:column;gap:.9rem;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+.form-group{display:flex;flex-direction:column;gap:.4rem;}
+.form-label{
+  font-size:.56rem;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;
+}
+.form-input,
+.form-textarea{
+  background:#0a0a0a;border:1px solid var(--border);
+  color:var(--text);font-family:var(--font-body);font-size:.7rem;
+  padding:.8rem 1rem;outline:none;
+  transition:border-color .2s;width:100%;
+}
+.form-input:focus,
+.form-textarea:focus{border-color:var(--neon);}
+.form-input::placeholder,
+.form-textarea::placeholder{color:#2a2a2a;}
+.form-textarea{resize:vertical;min-height:130px;}
+.form-select{
+  background:#0a0a0a;border:1px solid var(--border);
+  color:var(--text);font-family:var(--font-body);font-size:.7rem;
+  padding:.8rem 1rem;outline:none;cursor:none;
+  transition:border-color .2s;width:100%;
+  -webkit-appearance:none;appearance:none;
+}
+.form-select:focus{border-color:var(--neon);}
+.form-select option{background:#0a0a0a;}
+.form-submit{
+  background:var(--neon);color:var(--black);border:none;
+  padding:1rem 2.5rem;font-family:var(--font-body);
+  font-size:.68rem;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;cursor:none;
+  align-self:flex-start;transition:all .2s;
+}
+.form-submit:hover{background:var(--neon-dim);transform:translateY(-2px);}
+.form-notice{
+  font-size:.58rem;color:#333;letter-spacing:.06em;line-height:1.7;margin-top:.4rem;
+}
+.form-notice a{color:var(--muted);border-bottom:1px solid #2a2a2a;}
+
+/* success message */
+.form-success{
+  display:none;padding:1.2rem;border:1px solid var(--neon);
+  font-size:.68rem;color:var(--neon);letter-spacing:.06em;line-height:1.8;
+}
+
+/* ── FOOTER ───────────────────────────────────────────── */
+footer{
+  padding:2rem 4rem;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
+}
+.footer-logo{
+  font-family:var(--font-display);font-size:1.2rem;
+  letter-spacing:.1em;color:var(--neon);
+}
+.footer-links{display:flex;gap:2rem;list-style:none;}
+.footer-links a{
+  font-size:.56rem;color:var(--muted);
+  letter-spacing:.14em;text-transform:uppercase;transition:color .2s;
+}
+.footer-links a:hover{color:var(--neon);}
+.footer-copy{font-size:.54rem;color:#333;letter-spacing:.08em;}
+
+/* ── ANIMATIONS ───────────────────────────────────────── */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px);}
+  to{opacity:1;transform:translateY(0);}
+}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* reveal on scroll */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+/* ── MOBILE ───────────────────────────────────────────── */
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem;}
+  nav.scrolled{padding:.8rem 1.5rem;}
+  .nav-links,.nav-cta{display:none;}
+  .nav-burger{display:flex;}
+  .mobile-menu{
+    display:none;position:fixed;inset:0;background:rgba(6,6,6,.97);
+    z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:2.5rem;
+  }
+  .mobile-menu.open{display:flex;}
+  .mobile-menu a{
+    font-family:var(--font-display);font-size:3rem;
+    letter-spacing:.08em;color:var(--text);transition:color .2s;
+  }
+  .mobile-menu a:hover{color:var(--neon);}
+  .mobile-close{
+    position:absolute;top:1.5rem;right:1.5rem;
+    background:none;border:none;color:var(--muted);
+    font-size:1.5rem;cursor:none;
+  }
+  section{padding:4rem 1.5rem;}
+  .hero{padding:0 1.5rem;}
+  .hero-bg-word{font-size:40vw;}
+  .hero-stats{position:static;margin-top:2.5rem;gap:2rem;}
+  .hero-scroll-hint{display:none;}
+  .about-grid{grid-template-columns:1fr;gap:3rem;}
+  .gallery-grid{grid-template-columns:1fr 1fr;}
+  .gallery-item.featured{grid-column:span 1;}
+  .services-grid{grid-template-columns:1fr;}
+  .contact-grid{grid-template-columns:1fr;gap:3rem;}
+  .form-row{grid-template-columns:1fr;}
+  footer{flex-direction:column;align-items:flex-start;padding:2rem 1.5rem;}
+}
+@media(max-width:540px){
+  .gallery-grid{grid-template-columns:1fr;}
+  .hero-actions{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
+  <a href="#reel" onclick="closeMobile()">Reel</a>
+  <a href="#work" onclick="closeMobile()">Work</a>
+  <a href="#about" onclick="closeMobile()">About</a>
+  <a href="#services" onclick="closeMobile()">Services</a>
+  <a href="#contact" onclick="closeMobile()">Contact</a>
+</div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a class="nav-logo" href="#">CUTBYSAMY</a>
+  <ul class="nav-links">
+    <li><a href="#reel">Reel</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Hire Me</button>
+  <button class="nav-burger" id="burgerBtn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ══ HERO ══════════════════════════════════════════════ -->
+<section class="hero" id="home">
+  <div class="hero-bg-word" aria-hidden="true">CBS</div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Video Editor &amp; Visual Storyteller</p>
+    <h1 class="hero-title">CUT<br><span class="accent">BY<br>SAMY</span></h1>
+    <p class="hero-tagline">
+      Turning raw footage into visual experiences<br>
+      people can't ignore<span class="cursor-blink"></span>
+    </p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#reel">Watch Showreel</a>
+      <a class="btn-ghost" href="#work">↓ See Work</a>
+    </div>
+  </div>
+  <div class="hero-stats" aria-label="Stats">
+    <div>
+      <div class="stat-num">50+</div>
+      <div class="stat-label">Projects Cut</div>
+    </div>
+    <div>
+      <div class="stat-num">3+</div>
+      <div class="stat-label">Years Editing</div>
+    </div>
+    <div>
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Frames of Story</div>
+    </div>
+  </div>
+  <div class="hero-scroll-hint" aria-hidden="true">Scroll</div>
+</section>
+
+<!-- ══ SHOWREEL ══════════════════════════════════════════ -->
+<section id="reel">
+  <div class="section-header reveal">
+    <div>
+      <p class="section-kicker">// 01 — Showreel</p>
+      <h2 class="section-heading">The Reel</h2>
+    </div>
+  </div>
+
+  <div class="reel-frame reveal">
+    <!--
+      ═══════════════════════════════════════════════════════
+      HOW TO ADD YOUR SHOWREEL:
+      1. Upload your best 60-90 sec edit to YouTube (set as Unlisted)
+      2. Copy the video ID from the URL e.g. youtube.com/watch?v=XXXXXXXXXXX
+      3. Delete the entire <div class="reel-placeholder">...</div> block below
+      4. Paste this in its place (replace YOUR_VIDEO_ID):
+         <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID?autoplay=0&rel=0"
+                 allowfullscreen allow="accelerometer; autoplay; clipboard-write;
+                 encrypted-media; gyroscope; picture-in-picture"></iframe>
+      ═══════════════════════════════════════════════════════
+    -->
+    <div class="reel-placeholder">
+      <div class="play-ring" aria-label="Play showreel">
+        <div class="play-triangle"></div>
+      </div>
+      <iframe width="100%" height="100%" src="https://www.youtube.com/embed/cEnYqFCkI7g" frameborder="0" allowfullscreen></iframe>
+    </div>
+    <div class="reel-scanlines" aria-hidden="true"></div>
+    <div class="reel-corners" aria-hidden="true">
+      <span class="tl"></span><span class="tr"></span>
+      <span class="bl"></span><span class="br"></span>
+    </div>
+  </div>
+
+  <div class="reel-note reveal">
+    <strong>How to embed your reel:</strong> Upload to YouTube as <em>Unlisted</em> →
+    copy your video ID from the URL → replace <code>YOUR_VIDEO_ID</code> in the HTML comment above.
+  </div>
+</section>
+
+<!-- ══ WORK / GALLERY ════════════════════════════════════ -->
+<section id="work">
+  <div class="section-header reveal">
+    <div>
+      <p class="section-kicker">// 02 — Selected Work</p>
+      <h2 class="section-heading">Projects</h2>
+    </div>
+    <a class="btn-ghost" href="https://www.instagram.com/_cutbysamy/" target="_blank" rel="noopener">
+      @_cutbysamy ↗
+    </a>
+  </div>
+
+  <div class="gallery-grid reveal">
+    <!--
+      HOW TO ADD YOUR WORK:
+      Replace each <div class="gallery-item-bg"> content with:
+      <img src="your-thumbnail.jpg" alt="Project name"/>
+      Save your thumbnail images in the same folder as index.html
+    -->
+
+    <div class="gallery-item featured">
+      <div class="gallery-item-bg">
+        <img src="project1.jpg" alt="Brand Intro Film"/>
+      </div>
+      <div class="gallery-item-info">
+        <p class="gallery-cat">YouTube</p>
+        <h3 class="gallery-title">Brand Intro Film</h3>
+        <span class="gallery-tag">Cinematic</span>
+      </div>
+    </div>
+
+    <div class="gallery-item">
+      <div class="gallery-item-bg">
+        <img src="project2.jpg" alt="Lifestyle Vlog Edit"/>
+      </div>
+      <div class="gallery-item-info">
+        <p class="gallery-cat">Content</p>
+        <h3 class="gallery-title">Lifestyle Vlog Edit</h3>
+        <span class="gallery-tag">Fast Cut</span>
+      </div>
+    </div>
+
+    <div class="gallery-item">
+     <div class="gallery-item-bg">
+        <img src="project3.jpg" alt="Raw Emotion Cut"/>
+      </div>
+      <div class="gallery-item-info">
+        <p class="gallery-cat">Short Film</p>
+        <h3 class="gallery-title">Raw Emotion Cut</h3>
+        <span class="gallery-tag">Story-driven</span>
+      </div>
+    </div>
+
+    <div class="gallery-item">
+      <div class="gallery-item-bg">
+        <img src="project4.jpg" alt="Reels Montage"/>
+      </div>
+      <div class="gallery-item-info">
+        <p class="gallery-cat">Instagram</p>
+        <h3 class="gallery-title">Reels Montage</h3>
+        <span class="gallery-tag">Vertical</span>
+      </div>
+    </div>
+
+    <div class="gallery-item featured">
+      <div class="gallery-item-bg">
+        <img src="project5.jpg" alt="Visual Soundscape"/>
+      </div>
+      <div class="gallery-item-info">
+        <p class="gallery-cat">Music</p>
+        <h3 class="gallery-title">Visual Soundscape</h3>
+        <span class="gallery-tag">Music Video</span>
+      </div>
+    </div>
+
+    <div class="gallery-item">
+     <div class="gallery-item-bg">
+        <img src="project6.png" alt="Product Story Cut"/>
+      </div>
+      <div class="gallery-item-info">
+        <p class="gallery-cat">Commercial</p>
+        <h3 class="gallery-title">Product Story Cut</h3>
+        <span class="gallery-tag">Ad Edit</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ ABOUT ════════════════════════════════════════════ -->
+<section id="about">
+  <div class="section-header reveal">
+    <div>
+      <p class="section-kicker">// 03 — Who I Am</p>
+      <h2 class="section-heading">About</h2>
+    </div>
+  </div>
+  <div class="about-grid">
+    <div class="about-frame reveal">
+      <p class="about-frame-hint">Add your photo here</p>
+      <img src="samy.png" alt="Samy — Video Editor"
+     style="width:100%;height:100%;object-fit:cover;opacity:.85;"/>
+      <!--
+        HOW TO ADD YOUR PHOTO:
+        Replace the <div class="about-frame-bg"> with:
+        <img src="samy.jpg" alt="Samy — Video Editor"
+             style="width:100%;height:100%;object-fit:cover;opacity:.85;"/>
+      -->
+      <div class="about-available">Available<br>for Work</div>
+    </div>
+    <div class="about-content reveal">
+      <p class="about-body">
+        I'm <strong>Samy</strong> — a video editor who believes every frame has something to say.
+        I don't just cut clips together; I <strong>build visual worlds</strong> where story and
+        emotion collide.<br><br>
+        From YouTube content to cinematic short films, my work lives at the intersection of
+        <strong>raw authenticity</strong> and deliberate craft. Each project gets my full creative
+        obsession — from the first rough cut to the final colour grade.<br><br>
+        Based in Nigeria. Working worldwide.
+      </p>
+      <div class="skills-wrap">
+        <span class="skill">Premiere Pro</span>
+        <span class="skill">After Effects</span>
+        <span class="skill">DaVinci Resolve</span>
+        <span class="skill">Color Grading</span>
+        <span class="skill">Motion Graphics</span>
+        <span class="skill">Sound Design</span>
+        <span class="skill">YouTube Edits</span>
+        <span class="skill">Reels &amp; Shorts</span>
+      </div>
+      <a class="about-ig" href="https://www.instagram.com/_cutbysamy/" target="_blank" rel="noopener">
+        ↗ View Work on Instagram
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SERVICES ════════════════════════════════════════ -->
+<section id="services">
+  <div class="section-header reveal">
+    <div>
+      <p class="section-kicker">// 04 — What I Do</p>
+      <h2 class="section-heading">Services</h2>
+    </div>
+  </div>
+  <div class="services-grid reveal">
+    <div class="service-card">
+      <div class="service-icon">01</div>
+      <h3 class="service-title">YouTube &amp; Content Editing</h3>
+      <p class="service-desc">Full video edits for content creators — pacing, colour, graphics, thumbnails and everything in between.</p>
+      <ul class="service-list">
+        <li>Long-form YouTube videos</li>
+        <li>Vlogs &amp; travel films</li>
+        <li>Talking head &amp; podcast cuts</li>
+        <li>Shorts &amp; Reels repurposing</li>
+      </ul>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">02</div>
+      <h3 class="service-title">Cinematic &amp; Short Films</h3>
+      <p class="service-desc">Story-first editing for films, documentaries and brand narratives that demand emotional impact.</p>
+      <ul class="service-list">
+        <li>Short film post-production</li>
+        <li>Documentary editing</li>
+        <li>Brand story films</li>
+        <li>Music video cutting</li>
+      </ul>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">03</div>
+      <h3 class="service-title">Social &amp; Commercial</h3>
+      <p class="service-desc">Fast-turnaround edits built for attention — ads, promos and content that stops the scroll.</p>
+      <ul class="service-list">
+        <li>Instagram Reels &amp; TikToks</li>
+        <li>Ad &amp; promo cuts</li>
+        <li>Product reveal videos</li>
+        <li>Event highlight reels</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTACT ══════════════════════════════════════════ -->
+<section id="contact">
+  <div class="section-header reveal">
+    <div>
+      <p class="section-kicker">// 05 — Get In Touch</p>
+      <h2 class="section-heading">Let's Build<br>Something.</h2>
+    </div>
+  </div>
+  <div class="contact-grid">
+    <div class="contact-left reveal">
+      <p class="contact-intro">
+        Whether you need a YouTube edit, a cinematic brand film, or a long-term creative collab —
+        I'm ready. Tell me about your project and let's make something people can't scroll past.
+      </p>
+      <div class="contact-detail">
+        <div class="contact-item">
+          <span class="contact-item-label">Email</span>
+          <span class="contact-item-value">
+           <a href="mailto:samuelagama511@gmail.com">samuelagama511@gmail.com</a>
+          </span>
+        </div>
+        <div class="contact-item">
+          <span class="contact-item-label">Instagram</span>
+          <span class="contact-item-value">
+            <a href="https://www.instagram.com/_cutbysamy/" target="_blank" rel="noopener">@_cutbysamy</a>
+          </span>
+        </div>
+        <div class="contact-item">
+          <span class="contact-item-label">Availability</span>
+          <span class="contact-item-value" style="color:var(--neon);">Open to new projects</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <!--
+        HOW TO MAKE THE FORM SEND EMAILS:
+        1. Go to formspree.io and create a free account
+        2. Create a new form — it gives you a URL like https://formspree.io/f/xxxxxxxx
+        3. Replace action="#" below with that URL
+        4. Change method="dialog" to method="POST"
+        That's it. Every submission goes straight to Samuelagama511@gmail.com
+      -->
+      <form class="contact-form" id="contactForm" action="https://formspree.io/f/xykoyqgp" method="POST">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="fname">Name</label>
+            <input class="form-input" type="text" id="fname" name="name" placeholder="Your name" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="femail">Email</label>
+            <input class="form-input" type="email" id="femail" name="email" placeholder="your@email.com" required/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="ftype">Project Type</label>
+          <select class="form-select" id="ftype" name="project_type">
+            <option value="" disabled selected>Select a service</option>
+            <option>YouTube / Content Editing</option>
+            <option>Cinematic / Short Film</option>
+            <option>Reels / TikTok / Social</option>
+            <option>Music Video</option>
+            <option>Commercial / Ad</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fbudget">Budget Range</label>
+          <select class="form-select" id="fbudget" name="budget">
+            <option value="" disabled selected>Select a range</option>
+            <option>Under $100</option>
+            <option>$100 – $300</option>
+            <option>$300 – $700</option>
+            <option>$700+</option>
+            <option>Let's discuss</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fmessage">Tell Me About It</label>
+          <textarea class="form-textarea" id="fmessage" name="message"
+            placeholder="Describe your project, timeline, and what you're going for..." required></textarea>
+        </div>
+        <button type="submit" class="form-submit">Send Message →</button>
+        <p class="form-notice">
+          By submitting you agree to be contacted by CUTBYSAMY regarding your project.
+          Powered by <a href="https://formspree.io" target="_blank" rel="noopener">Formspree</a>.
+        </p>
+        <div class="form-success" id="formSuccess">
+          Message sent — I'll get back to you within 24 hours.
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-logo">CUTBYSAMY</div>
+  <ul class="footer-links">
+    <li><a href="#reel">Reel</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="https://www.instagram.com/_cutbysamy/" target="_blank" rel="noopener">Instagram</a></li>
+  </ul>
+  <p class="footer-copy">© 2025 CUTBYSAMY. All rights reserved.</p>
+</footer>
+
+<!-- ══ SCRIPTS ═══════════════════════════════════════════ -->
+<script>
+/* ── Custom cursor ── */
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+});
+(function animRing(){
+  rx+=(mx-rx)*.12;ry+=(my-ry)*.12;
+  ring.style.left=rx+'px';ring.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+})();
+document.querySelectorAll('a,button,.gallery-item,.skill').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{
+    cur.style.width='6px';cur.style.height='6px';
+    ring.style.width='52px';ring.style.height='52px';
+  });
+  el.addEventListener('mouseleave',()=>{
+    cur.style.width='10px';cur.style.height='10px';
+    ring.style.width='36px';ring.style.height='36px';
+  });
+});
+
+/* ── Navbar scroll shrink ── */
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>60);
+});
+
+/* ── Mobile menu ── */
+document.getElementById('burgerBtn').addEventListener('click',()=>{
+  document.getElementById('mobileMenu').classList.add('open');
+});
+document.getElementById('mobileClose').addEventListener('click',closeMobile);
+function closeMobile(){
+  document.getElementById('mobileMenu').classList.remove('open');
+}
+
+/* ── Scroll reveal ── */
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');}});
+},{threshold:0.12});
+reveals.forEach(el=>observer.observe(el));
+
+/* ── Contact form ── */
+const form = document.getElementById('contactForm');
+const success = document.getElementById('formSuccess');
+form.addEventListener('submit',async function(e){
+  const action = form.getAttribute('action');
+  if(action.includes('YOUR_FORM_ID')){
+    e.preventDefault();
+    success.style.display='block';
+    success.textContent='Note: Formspree not yet connected. Add your form ID in the HTML to receive real emails.';
+    return;
+  }
+  e.preventDefault();
+  const data = new FormData(form);
+  try{
+    const res = await fetch(action,{method:'POST',body:data,headers:{Accept:'application/json'}});
+    if(res.ok){
+      form.reset();
+      success.style.display='block';
+    } else {
+      success.style.display='block';
+      success.style.borderColor='#ff4444';
+      success.style.color='#ff4444';
+      success.textContent='Something went wrong. Please email me directly at Samuelagama511@gmail.com';
+    }
+  }catch{
+    success.style.display='block';
+    success.style.borderColor='#ff4444';
+    success.style.color='#ff4444';
+    success.textContent='Could not send. Email me directly at Samuelagama511@gmail.com';
+  }
+});
+</script>
+</body>
+</html>
