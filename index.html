@@ -1,975 +1,1016 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="description" content="CUTBYSAMY — Turning raw footage into visual experiences people can't ignore. Video editor specialising in cinematic, YouTube and creative content."/>
-<title>CUTBYSAMY — Video Editor</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
-<style>
-/* ── RESET ───────────────────────────────────────────── */
-*{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;font-size:16px;}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CUTBYSAMY — Video Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* ── TOKENS ──────────────────────────────────────────── */
-:root{
-  --neon:#00FF41;
-  --neon-dim:#00c431;
-  --black:#060606;
-  --dark:#0d0d0d;
-  --card:#111111;
-  --text:#e2e2e2;
-  --muted:#666666;
-  --border:#1c1c1c;
-  --font-display:'Bebas Neue',sans-serif;
-  --font-body:'Space Mono',monospace;
-}
+    :root {
+      --red: #e8341c;
+      --white: #f5f3ee;
+      --black: #0c0c0c;
+      --grey: #1a1a1a;
+      --muted: #888;
+      --border: #222;
+    }
 
-/* ── BASE ────────────────────────────────────────────── */
-body{
-  background:var(--black);
-  color:var(--text);
-  font-family:var(--font-body);
-  overflow-x:hidden;
-  cursor:none;
-}
-a{color:inherit;text-decoration:none;}
-img{display:block;max-width:100%;}
+    html { scroll-behavior: smooth; }
 
-/* ── CUSTOM CURSOR ───────────────────────────────────── */
-#cursor{
-  position:fixed;width:10px;height:10px;
-  background:var(--neon);border-radius:50%;
-  pointer-events:none;z-index:9999;
-  transform:translate(-50%,-50%);
-  transition:transform .1s,width .2s,height .2s,opacity .2s;
-}
-#cursor-ring{
-  position:fixed;width:36px;height:36px;
-  border:1px solid rgba(0,255,65,.4);border-radius:50%;
-  pointer-events:none;z-index:9998;
-  transform:translate(-50%,-50%);
-  transition:transform .12s ease-out,width .25s,height .25s,opacity .3s;
-}
-body:hover #cursor{opacity:1;}
+    body {
+      font-family: 'Manrope', sans-serif;
+      background: var(--black);
+      color: var(--white);
+      overflow-x: hidden;
+      cursor: none;
+    }
 
-/* ── GRAIN OVERLAY ───────────────────────────────────── */
-body::after{
-  content:'';position:fixed;inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
-  pointer-events:none;z-index:1;opacity:.35;
-}
+    /* CUSTOM CURSOR */
+    .cursor {
+      position: fixed;
+      width: 10px; height: 10px;
+      background: var(--red);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transition: transform 0.15s ease;
+      mix-blend-mode: normal;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transition: transform 0.08s ease, width 0.2s, height 0.2s;
+    }
 
-/* ── NAV ─────────────────────────────────────────────── */
-nav{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:1.25rem 4rem;
-  background:rgba(6,6,6,.88);
-  backdrop-filter:blur(16px);
-  border-bottom:1px solid #0e0e0e;
-  transition:padding .3s;
-}
-nav.scrolled{padding:.9rem 4rem;}
-.nav-logo{
-  font-family:var(--font-display);
-  font-size:1.7rem;letter-spacing:.1em;color:var(--neon);
-}
-.nav-links{display:flex;gap:2.5rem;list-style:none;}
-.nav-links a{
-  font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--muted);transition:color .2s;
-}
-.nav-links a:hover{color:var(--neon);}
-.nav-cta{
-  background:transparent;border:1px solid var(--neon);
-  color:var(--neon);padding:.5rem 1.4rem;
-  font-family:var(--font-body);font-size:.62rem;
-  letter-spacing:.16em;text-transform:uppercase;cursor:none;
-  transition:background .2s,color .2s;
-}
-.nav-cta:hover{background:var(--neon);color:var(--black);}
-.nav-burger{display:none;flex-direction:column;gap:5px;cursor:none;background:none;border:none;padding:4px;}
-.nav-burger span{display:block;width:22px;height:1px;background:var(--text);transition:all .3s;}
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 28px 48px;
+      mix-blend-mode: difference;
+    }
+    nav .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 3px;
+      color: var(--white);
+      text-decoration: none;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 40px;
+    }
+    nav ul a {
+      color: var(--white);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    nav ul a:hover { opacity: 1; }
 
-/* ── HERO ─────────────────────────────────────────────── */
-.hero{
-  min-height:100vh;display:flex;flex-direction:column;
-  justify-content:center;padding:0 4rem;position:relative;overflow:hidden;
-}
-.hero-bg-word{
-  position:absolute;right:-1rem;top:50%;
-  transform:translateY(-52%);
-  font-family:var(--font-display);font-size:28vw;
-  color:#080808;letter-spacing:.04em;
-  pointer-events:none;user-select:none;line-height:.9;
-  z-index:0;
-}
-.hero-content{position:relative;z-index:2;}
-.hero-eyebrow{
-  font-size:.62rem;letter-spacing:.32em;color:var(--neon);
-  text-transform:uppercase;margin-bottom:1.6rem;
-  display:flex;align-items:center;gap:.9rem;
-  opacity:0;animation:fadeUp .8s .2s forwards;
-}
-.hero-eyebrow::before{content:'';display:inline-block;width:28px;height:1px;background:var(--neon);}
-.hero-title{
-  font-family:var(--font-display);
-  font-size:clamp(5.5rem,16vw,13rem);
-  line-height:.88;letter-spacing:.02em;color:#fff;
-  opacity:0;animation:fadeUp .9s .35s forwards;
-}
-.hero-title .accent{color:var(--neon);}
-.hero-tagline{
-  font-size:.72rem;color:var(--muted);
-  max-width:460px;line-height:2;margin:1.8rem 0 2.4rem;
-  letter-spacing:.04em;
-  opacity:0;animation:fadeUp .9s .5s forwards;
-}
-.cursor-blink{
-  display:inline-block;width:2px;height:.85em;
-  background:var(--neon);vertical-align:text-bottom;margin-left:2px;
-  animation:blink 1s step-end infinite;
-}
-.hero-actions{
-  display:flex;gap:1rem;flex-wrap:wrap;
-  opacity:0;animation:fadeUp .9s .65s forwards;
-}
-.btn-primary{
-  background:var(--neon);color:var(--black);border:none;
-  padding:.9rem 2.2rem;font-family:var(--font-body);
-  font-size:.68rem;font-weight:700;letter-spacing:.16em;
-  text-transform:uppercase;cursor:none;transition:all .2s;display:inline-block;
-}
-.btn-primary:hover{background:var(--neon-dim);transform:translateY(-2px);}
-.btn-ghost{
-  background:transparent;color:var(--text);border:1px solid #222;
-  padding:.9rem 2.2rem;font-family:var(--font-body);
-  font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
-  cursor:none;transition:all .2s;display:inline-flex;align-items:center;gap:.5rem;
-}
-.btn-ghost:hover{border-color:var(--neon);color:var(--neon);}
-.hero-stats{
-  position:absolute;bottom:2.8rem;right:4rem;
-  display:flex;gap:3rem;
-  opacity:0;animation:fadeUp .9s .8s forwards;
-}
-.stat-num{
-  font-family:var(--font-display);font-size:2.4rem;
-  color:var(--neon);line-height:1;
-}
-.stat-label{
-  font-size:.52rem;color:var(--muted);
-  letter-spacing:.16em;text-transform:uppercase;margin-top:3px;
-}
-.hero-scroll-hint{
-  position:absolute;bottom:2.8rem;left:4rem;
-  font-size:.58rem;color:var(--muted);letter-spacing:.22em;
-  text-transform:uppercase;display:flex;align-items:center;gap:.9rem;
-  opacity:0;animation:fadeUp .9s .9s forwards;
-}
-.hero-scroll-hint::after{content:'';display:inline-block;width:38px;height:1px;background:var(--muted);}
+    /* HERO */
+    #hero {
+      position: relative;
+      height: 100vh;
+      background: var(--white);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 48px 60px;
+    }
+    .hero-bg-img {
+      position: absolute;
+      top: 0; right: 0;
+      width: 55%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(100%);
+      opacity: 0.85;
+    }
+    .hero-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(to right, var(--white) 40%, transparent 75%);
+    }
+    .hero-social {
+      position: absolute;
+      left: 48px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 2;
+    }
+    .hero-social a {
+      font-size: 0.72rem;
+      color: #333;
+      text-decoration: none;
+      letter-spacing: 1px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color 0.2s;
+    }
+    .hero-social a:hover { color: var(--red); }
+    .hero-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(5rem, 16vw, 14rem);
+      line-height: 0.85;
+      color: var(--black);
+      position: relative;
+      z-index: 2;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .hero-title {
+      position: absolute;
+      bottom: 80px;
+      right: 48px;
+      text-align: right;
+      z-index: 2;
+    }
+    .hero-title span {
+      display: block;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--black);
+      letter-spacing: 1px;
+    }
+    .hero-title span:first-child { color: var(--muted); font-size: 0.85rem; margin-bottom: 6px; }
+    .hero-scroll {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #555;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      animation: bounce 2s infinite;
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
 
-/* ── SECTION BASE ─────────────────────────────────────── */
-section{padding:7rem 4rem;}
-.section-kicker{
-  font-size:.58rem;color:var(--neon);
-  letter-spacing:.3em;text-transform:uppercase;margin-bottom:.7rem;
-}
-.section-heading{
-  font-family:var(--font-display);
-  font-size:clamp(2.8rem,5vw,4.5rem);
-  letter-spacing:.04em;color:#fff;line-height:1;
-}
-.section-header{
-  display:flex;align-items:flex-end;
-  justify-content:space-between;margin-bottom:3.5rem;flex-wrap:wrap;gap:1rem;
-}
+    /* INTRO */
+    #intro {
+      background: var(--black);
+      padding: 120px 48px;
+      border-top: 1px solid var(--border);
+    }
+    .intro-label {
+      font-size: 0.72rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 48px;
+      font-weight: 600;
+    }
+    .intro-headline {
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      max-width: 900px;
+      color: var(--white);
+    }
+    .intro-headline .accent { color: var(--red); }
+    .intro-sub {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      max-width: 900px;
+    }
+    .intro-sub p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.8;
+      font-weight: 400;
+    }
+    .intro-cta {
+      margin-top: 56px;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--white);
+      padding: 16px 32px;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--white);
+      transition: all 0.25s ease;
+      border-radius: 100px;
+    }
+    .intro-cta:hover { background: var(--white); color: var(--black); }
 
-/* ── REEL ─────────────────────────────────────────────── */
-#reel{border-top:1px solid var(--border);}
-.reel-frame{
-  position:relative;width:100%;aspect-ratio:16/9;
-  background:#080808;overflow:hidden;
-  border:1px solid var(--border);
-}
-.reel-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
-.reel-placeholder{
-  position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:1.5rem;
-  background:#080808;cursor:none;
-}
-.reel-placeholder-label{
-  font-family:var(--font-display);font-size:clamp(1.5rem,4vw,3rem);
-  color:#161616;letter-spacing:.1em;text-align:center;
-}
-.reel-placeholder-sub{
-  font-size:.58rem;color:#202020;letter-spacing:.2em;text-transform:uppercase;
-}
-.play-ring{
-  width:88px;height:88px;border:1.5px solid var(--neon);border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  transition:transform .3s,background .3s;position:relative;
-}
-.play-ring:hover{transform:scale(1.08);background:rgba(0,255,65,.07);}
-.play-triangle{
-  width:0;height:0;
-  border-top:15px solid transparent;
-  border-bottom:15px solid transparent;
-  border-left:24px solid var(--neon);
-  margin-left:6px;
-}
-.reel-corners span{
-  position:absolute;width:18px;height:18px;
-  border-color:var(--neon);border-style:solid;
-}
-.reel-corners .tl{top:14px;left:14px;border-width:2px 0 0 2px;}
-.reel-corners .tr{top:14px;right:14px;border-width:2px 2px 0 0;}
-.reel-corners .bl{bottom:14px;left:14px;border-width:0 0 2px 2px;}
-.reel-corners .br{bottom:14px;right:14px;border-width:0 2px 2px 0;}
-.reel-scanlines{
-  position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,65,.012) 2px,rgba(0,255,65,.012) 4px);
-}
-/* how to embed note */
-.reel-note{
-  margin-top:1rem;font-size:.62rem;color:var(--muted);
-  letter-spacing:.06em;line-height:1.8;
-  border-left:2px solid var(--neon);padding-left:1rem;
-}
-.reel-note code{
-  background:#111;color:var(--neon);padding:2px 6px;font-size:.6rem;
-}
+    /* STATS */
+    .stats-bar {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .stat {
+      padding: 48px;
+      border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 4rem;
+      color: var(--white);
+      line-height: 1;
+    }
+    .stat-num span { color: var(--red); }
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
 
-/* ── GALLERY ──────────────────────────────────────────── */
-#work{border-top:1px solid var(--border);}
-.gallery-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
-}
-.gallery-item{
-  position:relative;aspect-ratio:16/9;overflow:hidden;
-  background:#0a0a0a;cursor:none;
-}
-.gallery-item-bg{
-  width:100%;height:100%;
-  display:flex;align-items:center;justify-content:center;
-  background:var(--card);transition:transform .6s ease;
-}
-.gallery-item:hover .gallery-item-bg{transform:scale(1.04);}
-.gallery-item-bg img{
-  width:100%;height:100%;object-fit:cover;
-  opacity:.55;transition:opacity .4s;
-}
-.gallery-item:hover .gallery-item-bg img{opacity:.25;}
-.gallery-placeholder-num{
-  font-family:var(--font-display);font-size:3rem;
-  color:#161616;letter-spacing:.08em;position:absolute;
-}
-.gallery-item-info{
-  position:absolute;inset:0;display:flex;flex-direction:column;
-  justify-content:flex-end;padding:1.3rem;
-  background:linear-gradient(transparent 40%,rgba(0,0,0,.88));
-  opacity:0;transition:opacity .3s;
-}
-.gallery-item:hover .gallery-item-info{opacity:1;}
-.gallery-cat{
-  font-size:.54rem;color:var(--neon);
-  letter-spacing:.2em;text-transform:uppercase;margin-bottom:.4rem;
-}
-.gallery-title{
-  font-family:var(--font-display);font-size:1.35rem;
-  letter-spacing:.05em;color:#fff;
-}
-.gallery-tag{
-  display:inline-block;border:1px solid #333;
-  font-size:.52rem;color:var(--muted);letter-spacing:.12em;
-  padding:3px 8px;text-transform:uppercase;margin-top:.5rem;
-}
-/* Featured item spans 2 columns */
-.gallery-item.featured{grid-column:span 2;}
+    /* WORK */
+    #work {
+      padding: 120px 48px;
+      border-top: 1px solid var(--border);
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 72px;
+    }
+    .section-label {
+      font-size: 0.72rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--red);
+      font-weight: 600;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 8vw, 7rem);
+      line-height: 0.9;
+      margin-top: 12px;
+    }
+    .section-link {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .section-link:hover { color: var(--white); border-color: var(--white); }
 
-/* ── ABOUT ────────────────────────────────────────────── */
-#about{border-top:1px solid var(--border);}
-.about-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:6rem;align-items:center;}
-.about-frame{
-  aspect-ratio:3/4;background:var(--dark);border:1px solid var(--border);
-  position:relative;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;
-}
-.about-frame-bg{
-  font-family:var(--font-display);font-size:5.5rem;
-  color:#0d0d0d;line-height:1;text-align:center;letter-spacing:.04em;
-}
-.about-available{
-  position:absolute;bottom:-1px;right:-1px;
-  background:var(--neon);color:var(--black);
-  padding:.9rem 1.1rem;font-size:.58rem;font-weight:700;
-  letter-spacing:.1em;text-transform:uppercase;line-height:1.5;
-}
-.about-frame-hint{
-  position:absolute;top:1rem;left:1rem;
-  font-size:.52rem;color:#1a1a1a;letter-spacing:.18em;text-transform:uppercase;
-}
-.about-body{
-  font-size:.72rem;line-height:2.1;color:var(--muted);
-  margin-bottom:2rem;
-}
-.about-body strong{color:var(--text);font-weight:700;}
-.skills-wrap{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:2.5rem;}
-.skill{
-  border:1px solid #1e1e1e;font-size:.58rem;
-  color:var(--muted);letter-spacing:.12em;
-  padding:5px 13px;text-transform:uppercase;transition:all .2s;
-}
-.skill:hover{border-color:var(--neon);color:var(--neon);}
-.about-ig{
-  display:inline-flex;align-items:center;gap:.6rem;
-  font-size:.64rem;color:var(--neon);letter-spacing:.1em;
-  text-transform:uppercase;border-bottom:1px solid var(--neon);
-  padding-bottom:2px;transition:opacity .2s;
-}
-.about-ig:hover{opacity:.7;}
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+    }
+    .project-card {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 16/10;
+      background: var(--grey);
+      cursor: none;
+    }
+    .project-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: grayscale(100%);
+      transition: transform 0.6s ease, filter 0.4s ease;
+    }
+    .project-card:hover img {
+      transform: scale(1.05);
+      filter: grayscale(0%);
+    }
+    .project-info {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 32px;
+      background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.35s ease;
+    }
+    .project-card:hover .project-info { transform: translateY(0); opacity: 1; }
+    .project-tag {
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--red);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .project-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      color: var(--white);
+    }
+    .project-card.wide { grid-column: span 2; aspect-ratio: 16/6; }
+    .project-overlay-link {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+    }
 
-/* ── SERVICES ─────────────────────────────────────────── */
-#services{border-top:1px solid var(--border);background:var(--dark);}
-.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
-.service-card{
-  background:var(--dark);padding:2.5rem 2rem;
-  transition:background .3s;
-}
-.service-card:hover{background:#111;}
-.service-icon{
-  font-family:var(--font-display);font-size:2.5rem;
-  color:var(--neon);letter-spacing:.05em;margin-bottom:1.2rem;line-height:1;
-}
-.service-title{
-  font-family:var(--font-display);font-size:1.4rem;
-  letter-spacing:.05em;color:#fff;margin-bottom:.8rem;
-}
-.service-desc{
-  font-size:.65rem;color:var(--muted);line-height:1.9;letter-spacing:.03em;
-}
-.service-list{
-  margin-top:1rem;list-style:none;display:flex;flex-direction:column;gap:.4rem;
-}
-.service-list li{
-  font-size:.6rem;color:#444;letter-spacing:.08em;
-  padding-left:.8rem;position:relative;
-}
-.service-list li::before{
-  content:'—';position:absolute;left:0;color:var(--neon);font-size:.55rem;
-}
+    /* SERVICES */
+    #services {
+      padding: 120px 48px;
+      border-top: 1px solid var(--border);
+    }
+    .services-grid {
+      margin-top: 72px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .service-item {
+      border-top: 1px solid var(--border);
+      padding: 56px 0;
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+    .service-item:nth-child(odd) { padding-right: 60px; border-right: 1px solid var(--border); }
+    .service-item:nth-child(even) { padding-left: 60px; }
+    .service-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 5rem;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--border);
+      line-height: 1;
+    }
+    .service-content h3 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: var(--white);
+    }
+    .service-content p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+    .service-list {
+      list-style: none;
+      border-top: 1px solid var(--border);
+    }
+    .service-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      font-size: 0.82rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      transition: color 0.2s;
+    }
+    .service-list li:hover { color: var(--white); }
+    .service-list li span { color: var(--red); font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; }
 
-/* ── CONTACT ──────────────────────────────────────────── */
-#contact{border-top:1px solid var(--border);}
-.contact-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:6rem;align-items:start;}
-.contact-left{}
-.contact-intro{
-  font-size:.7rem;color:var(--muted);line-height:2;
-  margin-bottom:2.5rem;letter-spacing:.03em;
-}
-.contact-detail{
-  display:flex;flex-direction:column;gap:1.2rem;margin-bottom:2.5rem;
-}
-.contact-item{display:flex;flex-direction:column;gap:.3rem;}
-.contact-item-label{
-  font-size:.54rem;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;
-}
-.contact-item-value{
-  font-size:.7rem;color:var(--text);letter-spacing:.05em;
-}
-.contact-item-value a{color:var(--neon);transition:opacity .2s;}
-.contact-item-value a:hover{opacity:.7;}
+    /* SHOWREEL */
+    #reel {
+      border-top: 1px solid var(--border);
+      padding: 120px 48px;
+    }
+    .reel-container {
+      margin-top: 56px;
+      position: relative;
+      aspect-ratio: 16/9;
+      background: var(--grey);
+      overflow: hidden;
+    }
+    .reel-container iframe {
+      width: 100%; height: 100%;
+      border: none;
+    }
+    .reel-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 20px;
+      color: var(--muted);
+    }
+    .reel-placeholder .play-btn {
+      width: 72px; height: 72px;
+      border: 1px solid var(--muted);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .reel-placeholder p {
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
 
-/* Form */
-.contact-form{display:flex;flex-direction:column;gap:.9rem;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
-.form-group{display:flex;flex-direction:column;gap:.4rem;}
-.form-label{
-  font-size:.56rem;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;
-}
-.form-input,
-.form-textarea{
-  background:#0a0a0a;border:1px solid var(--border);
-  color:var(--text);font-family:var(--font-body);font-size:.7rem;
-  padding:.8rem 1rem;outline:none;
-  transition:border-color .2s;width:100%;
-}
-.form-input:focus,
-.form-textarea:focus{border-color:var(--neon);}
-.form-input::placeholder,
-.form-textarea::placeholder{color:#2a2a2a;}
-.form-textarea{resize:vertical;min-height:130px;}
-.form-select{
-  background:#0a0a0a;border:1px solid var(--border);
-  color:var(--text);font-family:var(--font-body);font-size:.7rem;
-  padding:.8rem 1rem;outline:none;cursor:none;
-  transition:border-color .2s;width:100%;
-  -webkit-appearance:none;appearance:none;
-}
-.form-select:focus{border-color:var(--neon);}
-.form-select option{background:#0a0a0a;}
-.form-submit{
-  background:var(--neon);color:var(--black);border:none;
-  padding:1rem 2.5rem;font-family:var(--font-body);
-  font-size:.68rem;font-weight:700;letter-spacing:.16em;
-  text-transform:uppercase;cursor:none;
-  align-self:flex-start;transition:all .2s;
-}
-.form-submit:hover{background:var(--neon-dim);transform:translateY(-2px);}
-.form-notice{
-  font-size:.58rem;color:#333;letter-spacing:.06em;line-height:1.7;margin-top:.4rem;
-}
-.form-notice a{color:var(--muted);border-bottom:1px solid #2a2a2a;}
+    /* ABOUT */
+    #about {
+      border-top: 1px solid var(--border);
+      padding: 120px 48px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .about-img {
+      position: relative;
+      aspect-ratio: 3/4;
+      background: var(--grey);
+      overflow: hidden;
+    }
+    .about-img img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: grayscale(100%);
+    }
+    .about-img-placeholder {
+      width: 100%; height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .about-badge {
+      position: absolute;
+      top: 24px; right: 24px;
+      background: var(--red);
+      color: var(--white);
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 8px 14px;
+    }
+    .about-content .intro-label { margin-bottom: 28px; }
+    .about-content h2 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 6vw, 5.5rem);
+      line-height: 0.9;
+      margin-bottom: 32px;
+    }
+    .about-content p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.9;
+      margin-bottom: 20px;
+    }
+    .skills-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 32px;
+    }
+    .skill-tag {
+      border: 1px solid var(--border);
+      padding: 8px 18px;
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .skill-tag:hover { border-color: var(--red); color: var(--white); }
 
-/* success message */
-.form-success{
-  display:none;padding:1.2rem;border:1px solid var(--neon);
-  font-size:.68rem;color:var(--neon);letter-spacing:.06em;line-height:1.8;
-}
+    /* CONTACT */
+    #contact {
+      background: var(--white);
+      padding: 120px 48px;
+      border-top: 1px solid var(--border);
+    }
+    #contact .intro-label { color: var(--red); }
+    #contact .section-title { color: var(--black); }
+    .contact-grid {
+      margin-top: 72px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .contact-left h3 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--black);
+      margin-bottom: 16px;
+    }
+    .contact-left p {
+      font-size: 0.88rem;
+      color: #555;
+      line-height: 1.8;
+      margin-bottom: 40px;
+    }
+    .contact-info { display: flex; flex-direction: column; gap: 20px; }
+    .contact-info a {
+      font-size: 0.85rem;
+      color: var(--black);
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: color 0.2s;
+    }
+    .contact-info a:hover { color: var(--red); }
+    .contact-info a .ci-label {
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #999;
+      font-weight: 400;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .contact-form { display: flex; flex-direction: column; gap: 16px; }
+    .contact-form input,
+    .contact-form select,
+    .contact-form textarea {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #ccc;
+      padding: 14px 0;
+      font-size: 0.88rem;
+      font-family: 'Manrope', sans-serif;
+      color: var(--black);
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder { color: #aaa; }
+    .contact-form input:focus,
+    .contact-form textarea:focus { border-color: var(--black); }
+    .contact-form select { color: #aaa; cursor: pointer; }
+    .contact-form textarea { resize: none; height: 100px; }
+    .contact-submit {
+      margin-top: 8px;
+      background: var(--black);
+      color: var(--white);
+      border: none;
+      padding: 18px 40px;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+      font-family: 'Manrope', sans-serif;
+      cursor: none;
+      align-self: flex-start;
+      transition: background 0.2s;
+    }
+    .contact-submit:hover { background: var(--red); }
 
-/* ── FOOTER ───────────────────────────────────────────── */
-footer{
-  padding:2rem 4rem;border-top:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
-}
-.footer-logo{
-  font-family:var(--font-display);font-size:1.2rem;
-  letter-spacing:.1em;color:var(--neon);
-}
-.footer-links{display:flex;gap:2rem;list-style:none;}
-.footer-links a{
-  font-size:.56rem;color:var(--muted);
-  letter-spacing:.14em;text-transform:uppercase;transition:color .2s;
-}
-.footer-links a:hover{color:var(--neon);}
-.footer-copy{font-size:.54rem;color:#333;letter-spacing:.08em;}
+    /* FOOTER */
+    footer {
+      background: var(--black);
+      padding: 40px 48px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    footer .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      letter-spacing: 3px;
+      color: var(--white);
+    }
+    footer p {
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+    footer .footer-links { display: flex; gap: 28px; }
+    footer .footer-links a {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 1px;
+      transition: color 0.2s;
+    }
+    footer .footer-links a:hover { color: var(--red); }
 
-/* ── ANIMATIONS ───────────────────────────────────────── */
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(20px);}
-  to{opacity:1;transform:translateY(0);}
-}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+    /* ANIMATIONS */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
 
-/* reveal on scroll */
-.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
-.reveal.visible{opacity:1;transform:translateY(0);}
-
-/* ── MOBILE ───────────────────────────────────────────── */
-@media(max-width:900px){
-  nav{padding:1rem 1.5rem;}
-  nav.scrolled{padding:.8rem 1.5rem;}
-  .nav-links,.nav-cta{display:none;}
-  .nav-burger{display:flex;}
-  .mobile-menu{
-    display:none;position:fixed;inset:0;background:rgba(6,6,6,.97);
-    z-index:99;flex-direction:column;align-items:center;justify-content:center;gap:2.5rem;
-  }
-  .mobile-menu.open{display:flex;}
-  .mobile-menu a{
-    font-family:var(--font-display);font-size:3rem;
-    letter-spacing:.08em;color:var(--text);transition:color .2s;
-  }
-  .mobile-menu a:hover{color:var(--neon);}
-  .mobile-close{
-    position:absolute;top:1.5rem;right:1.5rem;
-    background:none;border:none;color:var(--muted);
-    font-size:1.5rem;cursor:none;
-  }
-  section{padding:4rem 1.5rem;}
-  .hero{padding:0 1.5rem;}
-  .hero-bg-word{font-size:40vw;}
-  .hero-stats{position:static;margin-top:2.5rem;gap:2rem;}
-  .hero-scroll-hint{display:none;}
-  .about-grid{grid-template-columns:1fr;gap:3rem;}
-  .gallery-grid{grid-template-columns:1fr 1fr;}
-  .gallery-item.featured{grid-column:span 1;}
-  .services-grid{grid-template-columns:1fr;}
-  .contact-grid{grid-template-columns:1fr;gap:3rem;}
-  .form-row{grid-template-columns:1fr;}
-  footer{flex-direction:column;align-items:flex-start;padding:2rem 1.5rem;}
-}
-@media(max-width:540px){
-  .gallery-grid{grid-template-columns:1fr;}
-  .hero-actions{flex-direction:column;align-items:flex-start;}
-}
-</style>
+    /* MOBILE */
+    @media (max-width: 768px) {
+      nav { padding: 20px 24px; }
+      nav ul { display: none; }
+      #hero { padding: 0 24px 48px; }
+      .hero-name { font-size: clamp(3.5rem, 20vw, 8rem); }
+      .hero-social { display: none; }
+      #intro, #work, #services, #reel, #about, #contact { padding: 80px 24px; }
+      .intro-sub { grid-template-columns: 1fr; gap: 24px; }
+      .stats-bar { grid-template-columns: 1fr; }
+      .stat { border-right: none; border-bottom: 1px solid var(--border); }
+      .projects-grid { grid-template-columns: 1fr; }
+      .project-card.wide { grid-column: span 1; aspect-ratio: 16/10; }
+      .services-grid { grid-template-columns: 1fr; }
+      .service-item:nth-child(odd) { padding-right: 0; border-right: none; }
+      .service-item:nth-child(even) { padding-left: 0; }
+      .service-item { grid-template-columns: 80px 1fr; gap: 20px; }
+      #about { grid-template-columns: 1fr; }
+      .contact-grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 16px; text-align: center; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- CURSOR -->
-<div id="cursor"></div>
-<div id="cursor-ring"></div>
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
 
-<!-- MOBILE MENU -->
-<div class="mobile-menu" id="mobileMenu">
-  <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
-  <a href="#reel" onclick="closeMobile()">Reel</a>
-  <a href="#work" onclick="closeMobile()">Work</a>
-  <a href="#about" onclick="closeMobile()">About</a>
-  <a href="#services" onclick="closeMobile()">Services</a>
-  <a href="#contact" onclick="closeMobile()">Contact</a>
-</div>
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="logo">© CUTBYSAMY</a>
+    <ul>
+      <li><a href="#work">Projects</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
 
-<!-- NAV -->
-<nav id="navbar">
-  <a class="nav-logo" href="#">CUTBYSAMY</a>
-  <ul class="nav-links">
-    <li><a href="#reel">Reel</a></li>
-    <li><a href="#work">Work</a></li>
-    <li><a href="#about">About</a></li>
-    <li><a href="#services">Services</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ul>
-  <button class="nav-cta" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Hire Me</button>
-  <button class="nav-burger" id="burgerBtn" aria-label="Open menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
+  <!-- HERO -->
+  <section id="hero">
+    <!--
+      ADD YOUR PHOTO:
+      Replace the src below with your actual photo filename
+      e.g. src="samy.png"
+      Photo should be: portrait, high contrast, professional
+      If no photo yet, delete the img tag and the overlay — the name still looks great alone
+    -->
+    <img class="hero-bg-img" src="samy.png" alt="Samy" onerror="this.style.display='none'">
+    <div class="hero-overlay"></div>
 
-<!-- ══ HERO ══════════════════════════════════════════════ -->
-<section class="hero" id="home">
-  <div class="hero-bg-word" aria-hidden="true">CBS</div>
-  <div class="hero-content">
-    <p class="hero-eyebrow">Video Editor &amp; Visual Storyteller</p>
-    <h1 class="hero-title">CUT<br><span class="accent">BY<br>SAMY</span></h1>
-    <p class="hero-tagline">
-      Turning raw footage into visual experiences<br>
-      people can't ignore<span class="cursor-blink"></span>
-    </p>
-    <div class="hero-actions">
-      <a class="btn-primary" href="#reel">Watch Showreel</a>
-      <a class="btn-ghost" href="#work">↓ See Work</a>
+    <div class="hero-social">
+      <a href="https://www.instagram.com/_cutbysamy/" target="_blank">⬡ Instagram</a>
+      <a href="mailto:samuelagama511@gmail.com">⬡ Email</a>
     </div>
-  </div>
-  <div class="hero-stats" aria-label="Stats">
-    <div>
-      <div class="stat-num">50+</div>
-      <div class="stat-label">Projects Cut</div>
+
+    <div class="hero-name fade-up">CUT BY<br>SAMY</div>
+
+    <div class="hero-title">
+      <span>// Based in Nigeria. Working Worldwide.</span>
+      <span>Video Editor</span>
+      <span>Visual Storyteller</span>
     </div>
-    <div>
-      <div class="stat-num">3+</div>
-      <div class="stat-label">Years Editing</div>
+
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <span>↓</span>
     </div>
-    <div>
+  </section>
+
+  <!-- INTRO -->
+  <section id="intro">
+    <p class="intro-label fade-up">// Intro</p>
+    <h2 class="intro-headline fade-up">
+      I'm a video editor who turns
+      <span class="accent">raw footage into stories</span>
+      people can't stop watching.
+    </h2>
+    <div class="intro-sub fade-up">
+      <p>I don't just cut clips together. I build the pacing, emotion, and energy that makes a viewer feel something — whether it's a 60-second reel or a 20-minute YouTube deep dive.</p>
+      <p>Every project gets my full focus — from the first rough cut to the final colour grade. Fast delivery. Clean communication. Results that speak louder than promises.</p>
+    </div>
+    <a href="#work" class="intro-cta fade-up">See My Work →</a>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat fade-up">
+      <div class="stat-num">6<span>+</span></div>
+      <div class="stat-label">Projects Completed</div>
+    </div>
+    <div class="stat fade-up">
+      <div class="stat-num">4<span>+</span></div>
+      <div class="stat-label">Months Editing</div>
+    </div>
+    <div class="stat fade-up">
       <div class="stat-num">∞</div>
       <div class="stat-label">Frames of Story</div>
     </div>
   </div>
-  <div class="hero-scroll-hint" aria-hidden="true">Scroll</div>
-</section>
 
-<!-- ══ SHOWREEL ══════════════════════════════════════════ -->
-<section id="reel">
-  <div class="section-header reveal">
-    <div>
-      <p class="section-kicker">// 01 — Showreel</p>
-      <h2 class="section-heading">The Reel</h2>
+  <!-- WORK -->
+  <section id="work">
+    <div class="section-header fade-up">
+      <div>
+        <p class="section-label">// Selected Work</p>
+        <h2 class="section-title">Projects</h2>
+      </div>
+      <a href="https://www.instagram.com/_cutbysamy/" target="_blank" class="section-link">View all on Instagram ↗</a>
     </div>
-  </div>
 
-  <div class="reel-frame reveal">
     <!--
-      ═══════════════════════════════════════════════════════
-      HOW TO ADD YOUR SHOWREEL:
-      1. Upload your best 60-90 sec edit to YouTube (set as Unlisted)
-      2. Copy the video ID from the URL e.g. youtube.com/watch?v=XXXXXXXXXXX
-      3. Delete the entire <div class="reel-placeholder">...</div> block below
-      4. Paste this in its place (replace YOUR_VIDEO_ID):
-         <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID?autoplay=0&rel=0"
-                 allowfullscreen allow="accelerometer; autoplay; clipboard-write;
-                 encrypted-media; gyroscope; picture-in-picture"></iframe>
-      ═══════════════════════════════════════════════════════
+      HOW TO ADD YOUR PROJECTS:
+      1. Screenshot each of your 6 Instagram videos
+      2. Save as project1.jpg, project2.jpg ... project6.jpg
+      3. Put those files in the same folder as this index.html
+      4. Replace each href="#" with the actual Instagram post link
+         e.g. href="https://www.instagram.com/p/ABC123/"
     -->
-    <div class="reel-placeholder">
-      <div class="play-ring" aria-label="Play showreel">
-        <div class="play-triangle"></div>
+    <div class="projects-grid fade-up">
+      <div class="project-card wide">
+        <img src="project1.jpg" alt="Project 1" onerror="this.src='https://via.placeholder.com/1200x450/1a1a1a/444?text=PROJECT+01'">
+        <a href="#" target="_blank" class="project-overlay-link"></a>
+        <div class="project-info">
+          <p class="project-tag">YouTube</p>
+          <p class="project-name">Project Title Here</p>
+        </div>
       </div>
-      <iframe width="100%" height="100%" src="https://www.youtube.com/embed/cEnYqFCkI7g" frameborder="0" allowfullscreen></iframe>
-    </div>
-    <div class="reel-scanlines" aria-hidden="true"></div>
-    <div class="reel-corners" aria-hidden="true">
-      <span class="tl"></span><span class="tr"></span>
-      <span class="bl"></span><span class="br"></span>
-    </div>
-  </div>
-
-  <div class="reel-note reveal">
-    <strong>How to embed your reel:</strong> Upload to YouTube as <em>Unlisted</em> →
-    copy your video ID from the URL → replace <code>YOUR_VIDEO_ID</code> in the HTML comment above.
-  </div>
-</section>
-
-<!-- ══ WORK / GALLERY ════════════════════════════════════ -->
-<section id="work">
-  <div class="section-header reveal">
-    <div>
-      <p class="section-kicker">// 02 — Selected Work</p>
-      <h2 class="section-heading">Projects</h2>
-    </div>
-    <a class="btn-ghost" href="https://www.instagram.com/_cutbysamy/" target="_blank" rel="noopener">
-      @_cutbysamy ↗
-    </a>
-  </div>
-
-  <div class="gallery-grid reveal">
-    <!--
-      HOW TO ADD YOUR WORK:
-      Replace each <div class="gallery-item-bg"> content with:
-      <img src="your-thumbnail.jpg" alt="Project name"/>
-      Save your thumbnail images in the same folder as index.html
-    -->
-
-    <div class="gallery-item featured">
-      <div class="gallery-item-bg">
-        <img src="project1.jpg" alt="Brand Intro Film"/>
+      <div class="project-card">
+        <img src="project2.jpg" alt="Project 2" onerror="this.src='https://via.placeholder.com/600x375/1a1a1a/444?text=PROJECT+02'">
+        <a href="#" target="_blank" class="project-overlay-link"></a>
+        <div class="project-info">
+          <p class="project-tag">Reels</p>
+          <p class="project-name">Project Title Here</p>
+        </div>
       </div>
-      <div class="gallery-item-info">
-        <p class="gallery-cat">YouTube</p>
-        <h3 class="gallery-title">Brand Intro Film</h3>
-        <span class="gallery-tag">Cinematic</span>
+      <div class="project-card">
+        <img src="project3.jpg" alt="Project 3" onerror="this.src='https://via.placeholder.com/600x375/1a1a1a/444?text=PROJECT+03'">
+        <a href="#" target="_blank" class="project-overlay-link"></a>
+        <div class="project-info">
+          <p class="project-tag">Commercial</p>
+          <p class="project-name">Project Title Here</p>
+        </div>
       </div>
-    </div>
-
-    <div class="gallery-item">
-      <div class="gallery-item-bg">
-        <img src="project2.jpg" alt="Lifestyle Vlog Edit"/>
+      <div class="project-card">
+        <img src="project4.jpg" alt="Project 4" onerror="this.src='https://via.placeholder.com/600x375/1a1a1a/444?text=PROJECT+04'">
+        <a href="#" target="_blank" class="project-overlay-link"></a>
+        <div class="project-info">
+          <p class="project-tag">Short Film</p>
+          <p class="project-name">Project Title Here</p>
+        </div>
       </div>
-      <div class="gallery-item-info">
-        <p class="gallery-cat">Content</p>
-        <h3 class="gallery-title">Lifestyle Vlog Edit</h3>
-        <span class="gallery-tag">Fast Cut</span>
+      <div class="project-card">
+        <img src="project5.jpg" alt="Project 5" onerror="this.src='https://via.placeholder.com/600x375/1a1a1a/444?text=PROJECT+05'">
+        <a href="#" target="_blank" class="project-overlay-link"></a>
+        <div class="project-info">
+          <p class="project-tag">Music Video</p>
+          <p class="project-name">Project Title Here</p>
+        </div>
+      </div>
+      <div class="project-card">
+        <img src="project6.png" alt="Project 6" onerror="this.src='https://via.placeholder.com/600x375/1a1a1a/444?text=PROJECT+06'">
+        <a href="#" target="_blank" class="project-overlay-link"></a>
+        <div class="project-info">
+          <p class="project-tag">Brand</p>
+          <p class="project-name">Project Title Here</p>
+        </div>
       </div>
     </div>
+  </section>
 
-    <div class="gallery-item">
-     <div class="gallery-item-bg">
-        <img src="project3.jpg" alt="Raw Emotion Cut"/>
-      </div>
-      <div class="gallery-item-info">
-        <p class="gallery-cat">Short Film</p>
-        <h3 class="gallery-title">Raw Emotion Cut</h3>
-        <span class="gallery-tag">Story-driven</span>
-      </div>
-    </div>
-
-    <div class="gallery-item">
-      <div class="gallery-item-bg">
-        <img src="project4.jpg" alt="Reels Montage"/>
-      </div>
-      <div class="gallery-item-info">
-        <p class="gallery-cat">Instagram</p>
-        <h3 class="gallery-title">Reels Montage</h3>
-        <span class="gallery-tag">Vertical</span>
-      </div>
-    </div>
-
-    <div class="gallery-item featured">
-      <div class="gallery-item-bg">
-        <img src="project5.jpg" alt="Visual Soundscape"/>
-      </div>
-      <div class="gallery-item-info">
-        <p class="gallery-cat">Music</p>
-        <h3 class="gallery-title">Visual Soundscape</h3>
-        <span class="gallery-tag">Music Video</span>
-      </div>
-    </div>
-
-    <div class="gallery-item">
-     <div class="gallery-item-bg">
-        <img src="project6.png" alt="Product Story Cut"/>
-      </div>
-      <div class="gallery-item-info">
-        <p class="gallery-cat">Commercial</p>
-        <h3 class="gallery-title">Product Story Cut</h3>
-        <span class="gallery-tag">Ad Edit</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══ ABOUT ════════════════════════════════════════════ -->
-<section id="about">
-  <div class="section-header reveal">
-    <div>
-      <p class="section-kicker">// 03 — Who I Am</p>
-      <h2 class="section-heading">About</h2>
-    </div>
-  </div>
-  <div class="about-grid">
-    <div class="about-frame reveal">
-      <p class="about-frame-hint">Add your photo here</p>
-      <img src="samy.png" alt="Samy — Video Editor"
-     style="width:100%;height:100%;object-fit:cover;opacity:.85;"/>
+  <!-- SHOWREEL -->
+  <section id="reel">
+    <p class="section-label fade-up">// Showreel</p>
+    <h2 class="section-title fade-up">The Reel</h2>
+    <div class="reel-container fade-up">
       <!--
-        HOW TO ADD YOUR PHOTO:
-        Replace the <div class="about-frame-bg"> with:
-        <img src="samy.jpg" alt="Samy — Video Editor"
-             style="width:100%;height:100%;object-fit:cover;opacity:.85;"/>
+        ADD YOUR SHOWREEL:
+        1. Upload your best edit to YouTube as "Unlisted"
+        2. Copy the video ID from the URL (the part after ?v=)
+           e.g. https://www.youtube.com/watch?v=ABC123xyz → ID is ABC123xyz
+        3. Replace YOUR_VIDEO_ID below with that ID
+        4. Delete the reel-placeholder div once it's working
       -->
-      <div class="about-available">Available<br>for Work</div>
-    </div>
-    <div class="about-content reveal">
-      <p class="about-body">
-        I'm <strong>Samy</strong> — a video editor who believes every frame has something to say.
-        I don't just cut clips together; I <strong>build visual worlds</strong> where story and
-        emotion collide.<br><br>
-        From YouTube content to cinematic short films, my work lives at the intersection of
-        <strong>raw authenticity</strong> and deliberate craft. Each project gets my full creative
-        obsession — from the first rough cut to the final colour grade.<br><br>
-        Based in Nigeria. Working worldwide.
-      </p>
-      <div class="skills-wrap">
-        <span class="skill">Premiere Pro</span>
-        <span class="skill">After Effects</span>
-        <span class="skill">DaVinci Resolve</span>
-        <span class="skill">Color Grading</span>
-        <span class="skill">Motion Graphics</span>
-        <span class="skill">Sound Design</span>
-        <span class="skill">YouTube Edits</span>
-        <span class="skill">Reels &amp; Shorts</span>
+      <!-- <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID?autoplay=0&rel=0" allowfullscreen></iframe> -->
+      <div class="reel-placeholder">
+        <div class="play-btn">▶</div>
+        <p>Upload your reel to add here</p>
       </div>
-      <a class="about-ig" href="https://www.instagram.com/_cutbysamy/" target="_blank" rel="noopener">
-        ↗ View Work on Instagram
-      </a>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ══ SERVICES ════════════════════════════════════════ -->
-<section id="services">
-  <div class="section-header reveal">
-    <div>
-      <p class="section-kicker">// 04 — What I Do</p>
-      <h2 class="section-heading">Services</h2>
-    </div>
-  </div>
-  <div class="services-grid reveal">
-    <div class="service-card">
-      <div class="service-icon">01</div>
-      <h3 class="service-title">YouTube &amp; Content Editing</h3>
-      <p class="service-desc">Full video edits for content creators — pacing, colour, graphics, thumbnails and everything in between.</p>
-      <ul class="service-list">
-        <li>Long-form YouTube videos</li>
-        <li>Vlogs &amp; travel films</li>
-        <li>Talking head &amp; podcast cuts</li>
-        <li>Shorts &amp; Reels repurposing</li>
-      </ul>
-    </div>
-    <div class="service-card">
-      <div class="service-icon">02</div>
-      <h3 class="service-title">Cinematic &amp; Short Films</h3>
-      <p class="service-desc">Story-first editing for films, documentaries and brand narratives that demand emotional impact.</p>
-      <ul class="service-list">
-        <li>Short film post-production</li>
-        <li>Documentary editing</li>
-        <li>Brand story films</li>
-        <li>Music video cutting</li>
-      </ul>
-    </div>
-    <div class="service-card">
-      <div class="service-icon">03</div>
-      <h3 class="service-title">Social &amp; Commercial</h3>
-      <p class="service-desc">Fast-turnaround edits built for attention — ads, promos and content that stops the scroll.</p>
-      <ul class="service-list">
-        <li>Instagram Reels &amp; TikToks</li>
-        <li>Ad &amp; promo cuts</li>
-        <li>Product reveal videos</li>
-        <li>Event highlight reels</li>
-      </ul>
-    </div>
-  </div>
-</section>
+  <!-- SERVICES -->
+  <section id="services">
+    <p class="section-label fade-up">// Services</p>
+    <h2 class="section-title fade-up">What I Do</h2>
 
-<!-- ══ CONTACT ══════════════════════════════════════════ -->
-<section id="contact">
-  <div class="section-header reveal">
-    <div>
-      <p class="section-kicker">// 05 — Get In Touch</p>
-      <h2 class="section-heading">Let's Build<br>Something.</h2>
-    </div>
-  </div>
-  <div class="contact-grid">
-    <div class="contact-left reveal">
-      <p class="contact-intro">
-        Whether you need a YouTube edit, a cinematic brand film, or a long-term creative collab —
-        I'm ready. Tell me about your project and let's make something people can't scroll past.
-      </p>
-      <div class="contact-detail">
-        <div class="contact-item">
-          <span class="contact-item-label">Email</span>
-          <span class="contact-item-value">
-           <a href="mailto:samuelagama511@gmail.com">samuelagama511@gmail.com</a>
-          </span>
+    <div class="services-grid fade-up">
+      <div class="service-item">
+        <div class="service-num">01</div>
+        <div class="service-content">
+          <h3>YouTube & Content Editing</h3>
+          <p>Full-service editing for creators who want videos that hold attention, grow channels, and actually get watched to the end.</p>
+          <ul class="service-list">
+            <li>Long-form YouTube videos <span>01</span></li>
+            <li>Vlogs & travel films <span>02</span></li>
+            <li>Talking head & podcast cuts <span>03</span></li>
+            <li>Shorts & Reels repurposing <span>04</span></li>
+          </ul>
         </div>
-        <div class="contact-item">
-          <span class="contact-item-label">Instagram</span>
-          <span class="contact-item-value">
-            <a href="https://www.instagram.com/_cutbysamy/" target="_blank" rel="noopener">@_cutbysamy</a>
-          </span>
+      </div>
+      <div class="service-item">
+        <div class="service-num">02</div>
+        <div class="service-content">
+          <h3>Social & Commercial</h3>
+          <p>Fast-turnaround cuts built for attention — ads, promos, and content engineered to stop the scroll and drive action.</p>
+          <ul class="service-list">
+            <li>Instagram Reels & TikToks <span>01</span></li>
+            <li>Ad & promo cuts <span>02</span></li>
+            <li>Product reveal videos <span>03</span></li>
+            <li>Event highlight reels <span>04</span></li>
+          </ul>
         </div>
-        <div class="contact-item">
-          <span class="contact-item-label">Availability</span>
-          <span class="contact-item-value" style="color:var(--neon);">Open to new projects</span>
+      </div>
+      <div class="service-item">
+        <div class="service-num">03</div>
+        <div class="service-content">
+          <h3>Cinematic & Brand Films</h3>
+          <p>Story-first editing that makes brands feel human — the kind of content people share because it moves them.</p>
+          <ul class="service-list">
+            <li>Brand story films <span>01</span></li>
+            <li>Documentary cuts <span>02</span></li>
+            <li>Music video editing <span>03</span></li>
+            <li>Short film post-production <span>04</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="service-item">
+        <div class="service-num">04</div>
+        <div class="service-content">
+          <h3>Colour & Sound</h3>
+          <p>The final layer that separates amateur from cinematic — precise colour grading and sound design that makes your footage feel expensive.</p>
+          <ul class="service-list">
+            <li>DaVinci Resolve colour grade <span>01</span></li>
+            <li>Sound design & mixing <span>02</span></li>
+            <li>LUT application <span>03</span></li>
+            <li>Export optimisation <span>04</span></li>
+          </ul>
         </div>
       </div>
     </div>
+  </section>
 
-    <div class="reveal">
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="about-img">
       <!--
-        HOW TO MAKE THE FORM SEND EMAILS:
-        1. Go to formspree.io and create a free account
-        2. Create a new form — it gives you a URL like https://formspree.io/f/xxxxxxxx
-        3. Replace action="#" below with that URL
-        4. Change method="dialog" to method="POST"
-        That's it. Every submission goes straight to Samuelagama511@gmail.com
+        ADD YOUR PHOTO HERE:
+        Replace src="samy.png" with your actual image
       -->
-      <form class="contact-form" id="contactForm" action="https://formspree.io/f/xykoyqgp" method="POST">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="fname">Name</label>
-            <input class="form-input" type="text" id="fname" name="name" placeholder="Your name" required/>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="femail">Email</label>
-            <input class="form-input" type="email" id="femail" name="email" placeholder="your@email.com" required/>
-          </div>
+      <img src="samy.png" alt="Samy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+      <div class="about-img-placeholder" style="display:none">Add your photo here</div>
+      <div class="about-badge">Available for Work</div>
+    </div>
+    <div class="about-content">
+      <p class="intro-label fade-up">// About Me</p>
+      <h2 class="fade-up">I'm Samy.<br>I Make<br>Frames Talk.</h2>
+      <p class="fade-up">Based in Nigeria, working with creators and brands worldwide. I started editing in January 2026 — not because it seemed like a good income stream, but because I genuinely love what happens when the right cut hits at the right moment.</p>
+      <p class="fade-up">I work in CapCut and I'm actively building my craft in DaVinci Resolve — because I believe in growing with my tools. Every project I take on gets treated like it matters, because to my client, it does.</p>
+      <div class="skills-wrap fade-up">
+        <span class="skill-tag">CapCut</span>
+        <span class="skill-tag">DaVinci Resolve</span>
+        <span class="skill-tag">Colour Grading</span>
+        <span class="skill-tag">Sound Design</span>
+        <span class="skill-tag">YouTube Edits</span>
+        <span class="skill-tag">Reels & Shorts</span>
+        <span class="skill-tag">Motion Graphics</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <p class="intro-label fade-up">// Get In Touch</p>
+    <h2 class="section-title fade-up" style="color:var(--black)">Let's Build<br>Something.</h2>
+
+    <div class="contact-grid fade-up">
+      <div class="contact-left">
+        <h3>Ready to work together?</h3>
+        <p>Whether you need a YouTube edit, a cinematic brand film, or a long-term creative collaborator — tell me about your project and let's make something people can't scroll past.</p>
+        <div class="contact-info">
+          <a href="mailto:samuelagama511@gmail.com">
+            <div>
+              <span class="ci-label">Email</span>
+              samuelagama511@gmail.com
+            </div>
+          </a>
+          <a href="https://www.instagram.com/_cutbysamy/" target="_blank">
+            <div>
+              <span class="ci-label">Instagram</span>
+              @_cutbysamy
+            </div>
+          </a>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="ftype">Project Type</label>
-          <select class="form-select" id="ftype" name="project_type">
-            <option value="" disabled selected>Select a service</option>
-            <option>YouTube / Content Editing</option>
-            <option>Cinematic / Short Film</option>
-            <option>Reels / TikTok / Social</option>
-            <option>Music Video</option>
-            <option>Commercial / Ad</option>
-            <option>Other</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fbudget">Budget Range</label>
-          <select class="form-select" id="fbudget" name="budget">
-            <option value="" disabled selected>Select a range</option>
-            <option>Under $100</option>
-            <option>$100 – $300</option>
-            <option>$300 – $700</option>
-            <option>$700+</option>
-            <option>Let's discuss</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fmessage">Tell Me About It</label>
-          <textarea class="form-textarea" id="fmessage" name="message"
-            placeholder="Describe your project, timeline, and what you're going for..." required></textarea>
-        </div>
-        <button type="submit" class="form-submit">Send Message →</button>
-        <p class="form-notice">
-          By submitting you agree to be contacted by CUTBYSAMY regarding your project.
-          Powered by <a href="https://formspree.io" target="_blank" rel="noopener">Formspree</a>.
-        </p>
-        <div class="form-success" id="formSuccess">
-          Message sent — I'll get back to you within 24 hours.
-        </div>
+      </div>
+      <form class="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="email" name="email" placeholder="Your Email" required>
+        <select name="service">
+          <option value="" disabled selected>Select a Service</option>
+          <option>YouTube / Content Editing</option>
+          <option>Reels / TikTok / Social</option>
+          <option>Cinematic / Brand Film</option>
+          <option>Music Video</option>
+          <option>Colour & Sound</option>
+          <option>Other</option>
+        </select>
+        <select name="budget">
+          <option value="" disabled selected>Budget Range</option>
+          <option>Under $100</option>
+          <option>$100 – $300</option>
+          <option>$300 – $700</option>
+          <option>$700+</option>
+          <option>Let's discuss</option>
+        </select>
+        <textarea name="message" placeholder="Tell me about your project..."></textarea>
+        <button type="submit" class="contact-submit">Send Message →</button>
       </form>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ══ FOOTER ════════════════════════════════════════════ -->
-<footer>
-  <div class="footer-logo">CUTBYSAMY</div>
-  <ul class="footer-links">
-    <li><a href="#reel">Reel</a></li>
-    <li><a href="#work">Work</a></li>
-    <li><a href="#about">About</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="https://www.instagram.com/_cutbysamy/" target="_blank" rel="noopener">Instagram</a></li>
-  </ul>
-  <p class="footer-copy">© 2025 CUTBYSAMY. All rights reserved.</p>
-</footer>
+  <!-- FOOTER -->
+  <footer>
+    <span class="logo">CUTBYSAMY</span>
+    <p>© 2025 CUTBYSAMY. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="#work">Work</a>
+      <a href="#services">Services</a>
+      <a href="https://www.instagram.com/_cutbysamy/" target="_blank">Instagram</a>
+      <a href="mailto:samuelagama511@gmail.com">Email</a>
+    </div>
+  </footer>
 
-<!-- ══ SCRIPTS ═══════════════════════════════════════════ -->
-<script>
-/* ── Custom cursor ── */
-const cur = document.getElementById('cursor');
-const ring = document.getElementById('cursor-ring');
-let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove',e=>{
-  mx=e.clientX;my=e.clientY;
-  cur.style.left=mx+'px';cur.style.top=my+'px';
-});
-(function animRing(){
-  rx+=(mx-rx)*.12;ry+=(my-ry)*.12;
-  ring.style.left=rx+'px';ring.style.top=ry+'px';
-  requestAnimationFrame(animRing);
-})();
-document.querySelectorAll('a,button,.gallery-item,.skill').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{
-    cur.style.width='6px';cur.style.height='6px';
-    ring.style.width='52px';ring.style.height='52px';
-  });
-  el.addEventListener('mouseleave',()=>{
-    cur.style.width='10px';cur.style.height='10px';
-    ring.style.width='36px';ring.style.height='36px';
-  });
-});
-
-/* ── Navbar scroll shrink ── */
-window.addEventListener('scroll',()=>{
-  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>60);
-});
-
-/* ── Mobile menu ── */
-document.getElementById('burgerBtn').addEventListener('click',()=>{
-  document.getElementById('mobileMenu').classList.add('open');
-});
-document.getElementById('mobileClose').addEventListener('click',closeMobile);
-function closeMobile(){
-  document.getElementById('mobileMenu').classList.remove('open');
-}
-
-/* ── Scroll reveal ── */
-const reveals = document.querySelectorAll('.reveal');
-const observer = new IntersectionObserver(entries=>{
-  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');}});
-},{threshold:0.12});
-reveals.forEach(el=>observer.observe(el));
-
-/* ── Contact form ── */
-const form = document.getElementById('contactForm');
-const success = document.getElementById('formSuccess');
-form.addEventListener('submit',async function(e){
-  const action = form.getAttribute('action');
-  if(action.includes('YOUR_FORM_ID')){
-    e.preventDefault();
-    success.style.display='block';
-    success.textContent='Note: Formspree not yet connected. Add your form ID in the HTML to receive real emails.';
-    return;
-  }
-  e.preventDefault();
-  const data = new FormData(form);
-  try{
-    const res = await fetch(action,{method:'POST',body:data,headers:{Accept:'application/json'}});
-    if(res.ok){
-      form.reset();
-      success.style.display='block';
-    } else {
-      success.style.display='block';
-      success.style.borderColor='#ff4444';
-      success.style.color='#ff4444';
-      success.textContent='Something went wrong. Please email me directly at Samuelagama511@gmail.com';
+  <script>
+    // Custom Cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    function animateCursor() {
+      cursor.style.left = mx - 5 + 'px';
+      cursor.style.top = my - 5 + 'px';
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      ring.style.left = rx - 18 + 'px';
+      ring.style.top = ry - 18 + 'px';
+      requestAnimationFrame(animateCursor);
     }
-  }catch{
-    success.style.display='block';
-    success.style.borderColor='#ff4444';
-    success.style.color='#ff4444';
-    success.textContent='Could not send. Email me directly at Samuelagama511@gmail.com';
-  }
-});
-</script>
+    animateCursor();
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => { cursor.style.transform = 'scale(2.5)'; ring.style.width = '60px'; ring.style.height = '60px'; });
+      el.addEventListener('mouseleave', () => { cursor.style.transform = 'scale(1)'; ring.style.width = '36px'; ring.style.height = '36px'; });
+    });
+
+    // Scroll Animations
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 80);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    // Hero name animation on load
+    document.querySelector('.hero-name').style.transitionDelay = '0.3s';
+    setTimeout(() => document.querySelector('.hero-name').classList.add('visible'), 100);
+  </script>
 </body>
 </html>
